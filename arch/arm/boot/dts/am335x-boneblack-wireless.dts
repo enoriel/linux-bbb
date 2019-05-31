@@ -11,6 +11,10 @@
 #include "am335x-bone-common.dtsi"
 #include "am335x-boneblack-common.dtsi"
 #include <dt-bindings/interrupt-controller/irq.h>
+#include "bbb-i2c1.dtsi"
+#include "bbb-i2c2.dtsi"
+#include "bbb-uart4.dtsi"
+
 /* #include "am335x-bone-jtag.dtsi" */
 
 / {
@@ -28,6 +32,59 @@
 		gpio = <&gpio3 9 0>;
 		enable-active-high;
 	};
+	
+	leds {
+		pinctrl-names = "default";
+		pinctrl-0 = <&wl18xx_pins>;
+		compatible = "gpio-leds";
+
+		wl18xx_bt_en {
+			label = "wl18xx_bt_en";
+			gpios = <&gpio0 28 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+	};
+
+	btwilink {
+		compatible = "btwilink";
+	};
+	
+};
+
+&ocp {
+    0x0A0 { status = "disabled"; };	/* lcd: lcd_data0 */
+    0x0A4 { status = "disabled"; };	/* lcd: lcd_data1 */
+	0x0A8 { status = "disabled"; };	/* lcd: lcd_data2 */
+	0x0AC { status = "disabled"; };	/* lcd: lcd_data3 */
+	0x0B0 { status = "disabled"; };	/* lcd: lcd_data4 */
+	0x0B4 { status = "disabled"; };	/* lcd: lcd_data5 */
+	0x0B8 { status = "disabled"; };	/* lcd: lcd_data6 */
+	0x0BC { status = "disabled"; };	/* lcd: lcd_data7 */
+	0x0C0 { status = "disabled"; };	/* lcd: lcd_data8 */
+	0x0C4 { status = "disabled"; };	/* lcd: lcd_data9 */
+	0x0C8 { status = "disabled"; };	/* lcd: lcd_data10 */
+	0x0CC { status = "disabled"; };	/* lcd: lcd_data11 */
+	0x0D0 { status = "disabled"; };	/* lcd: lcd_data12 */
+	0x0D4 { status = "disabled"; };	/* lcd: lcd_data13 */
+	0x0D8 { status = "disabled"; };	/* lcd: lcd_data14 */
+	0x0DC { status = "disabled"; };	/* lcd: lcd_data15 */
+
+	0x0E0 { status = "disabled"; };	/* lcd: lcd_vsync */
+	0x0E4 { status = "disabled"; };	/* lcd: lcd_hsync */
+	0x0E8 { status = "disabled"; };	/* lcd: lcd_pclk */
+	Ox0EC { status = "disabled"; };	/* lcd: lcd_ac_bias_en */
+
+	0x1A4 { status = "disabled"; };	/* lcd: gpio3_19 DISPEN */
+
+	0x048 { status = "disabled"; };	/* pwm: ehrpwm1a PWM_BL */
+
+	0x158 { status = "disabled"; };	/* i2c1_sda */
+	0x15C { status = "disabled"; };	/* i2c1_scl */
+    0x180 { status = "disabled"; }; /* touch interrupt on gpio0_14 */
+};
+
+&sgx {
+	status = "okay";
 };
 
 &am33xx_pinmux {
@@ -64,6 +121,175 @@
 			AM33XX_IOPAD(0x930, PIN_OUTPUT_PULLUP | MUX_MODE7)	/* gmii1_rxclk.gpio3_10 LS_BUF_EN */
 		>;
 	};
+	
+	lcd_pins: pinmux_lcd_pins {
+        pinctrl-single,pins = <
+			0x0a0 (PIN_OUTPUT | MUX_MODE0)            /* lcd_data0 */
+			0x0a4 (PIN_OUTPUT | MUX_MODE0)            /* lcd_data1 */
+			0x0a8 (PIN_OUTPUT | MUX_MODE0)            /* lcd_data2 */
+			0x0ac (PIN_OUTPUT | MUX_MODE0)            /* lcd_data3 */
+			0x0b0 (PIN_OUTPUT | MUX_MODE0)            /* lcd_data4 */
+			0x0b4 (PIN_OUTPUT | MUX_MODE0)            /* lcd_data5 */
+			0x0b8 (PIN_OUTPUT | MUX_MODE0)            /* lcd_data6 */
+			0x0bc (PIN_OUTPUT | MUX_MODE0)            /* lcd_data7 */
+			0x0c0 (PIN_OUTPUT | MUX_MODE0)            /* lcd_data8 */
+			0x0c4 (PIN_OUTPUT | MUX_MODE0)            /* lcd_data9 */
+			0x0c8 (PIN_OUTPUT | MUX_MODE0)            /* lcd_data10 */
+			0x0cc (PIN_OUTPUT | MUX_MODE0)            /* lcd_data11 */
+			0x0d0 (PIN_OUTPUT | MUX_MODE0)            /* lcd_data12 */
+			0x0d4 (PIN_OUTPUT | MUX_MODE0)            /* lcd_data13 */
+			0x0d8 (PIN_OUTPUT | MUX_MODE0)            /* lcd_data14 */
+			0x0dc (PIN_OUTPUT | MUX_MODE0)            /* lcd_data15 */
+			0x0e0 (PIN_OUTPUT | MUX_MODE0)            /* lcd_vsync */
+			0x0e4 (PIN_OUTPUT | MUX_MODE0)            /* lcd_hsync */
+			0x0e8 (PIN_OUTPUT | MUX_MODE0)            /* lcd_pclk */
+			0x0ec (PIN_OUTPUT | MUX_MODE0)            /* lcd_ac_bias_en */
+			/* LCD enable */
+			0x1a4 (PIN_OUTPUT | MUX_MODE7)            /* P9.27, gpio3_19 */
+		>;
+	};
+
+	backlight_pin: backlight_pin {
+		pinctrl-single,pins = <
+			0x048 (PIN_OUTPUT | MUX_MODE6)    /* P9.14, gpio1[18]/ehrpwm1A */
+		>;
+	};
+
+	ar1021_i2c_pin: ar1021_i2c_pin {
+		pinctrl-single,pins = <
+			0x158 (PIN_INPUT_PULLUP | MUX_MODE2)    /*  */
+			0x15C (PIN_INPUT_PULLUP | MUX_MODE2)    /*  */
+		>;
+	};
+	
+	edt_ft5x06_pins: pinmux_edt_ft5x06_pins {
+        pinctrl-single,pins = <
+            0x180 (PIN_INPUT_PULLUP | MUX_MODE7)
+        >;
+    };
+};
+
+&epwmss1 {
+	status = "okay";
+};
+
+&ehrpwm1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&backlight_pin>;
+	status = "okay";
+};
+
+&lcdc {
+	status = "okay";
+};
+
+&i2c1 {
+    status = "okay";
+	ar1021: ar1021_i2c@4d {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		compatible = "microchip,ar1021_i2c";
+		reg = <0x4d>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&ar1021_i2c_pin>;
+		
+		// configuration start
+        clock-frequency = <100000>;
+		
+		polytouch: edt-ft5x06@38 {
+				compatible = "edt,edt-ft5x06";
+				reg = <0x38>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&edt_ft5x06_pins>;
+				interrupt-parent = <&gpio0>;
+				interrupts = <14 2>;
+
+				touchscreen-size-y = <800>;
+				touchscreen-size-x = <480>;
+
+				touchscreen-swapped-x-y;
+				touchscreen-inverted-x;
+        };
+	};
+};
+
+/ {
+	
+	#address-cells = <1>;
+	#size-cells = <1>;
+	backlight {
+		status = "okay";
+		compatible = "pwm-backlight";
+		pwms = <&ehrpwm1 0 500000 0>;
+		brightness-levels = <
+			0  1  2  3  4  5  6  7  8  9
+			10 11 12 13 14 15 16 17 18 19
+			20 21 22 23 24 25 26 27 28 29
+			30 31 32 33 34 35 36 37 38 39
+			40 41 42 43 44 45 46 47 48 49
+			50 51 52 53 54 55 56 57 58 59
+			60 61 62 63 64 65 66 67 68 69
+			70 71 72 73 74 75 76 77 78 79
+			80 81 82 83 84 85 86 87 88 89
+			90 91 92 93 94 95 96 97 98 99
+			100
+		>;
+		default-brightness-level = <100>;
+	};
+
+	panel {
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		status = "okay";
+		compatible = "ti,tilcdc,panel";
+		pinctrl-names = "default";
+		pinctrl-0 = <&lcd_pins>;
+		enable-gpios = <&gpio3 19 GPIO_ACTIVE_HIGH>;
+
+		panel-info {
+			ac-bias           = <255>;
+			ac-bias-intrpt    = <0>;
+			dma-burst-sz      = <16>;
+			bpp               = <16>;
+			fdd               = <0x80>;
+			sync-edge         = <0>;
+			sync-ctrl         = <1>;
+			raster-order      = <0>;
+			fifo-th           = <0>;
+		};
+
+		display-timings {
+			native-mode = <&timing0>;
+			timing0: 800x480 {
+				clock-frequency = <30000000>;
+				hactive = <800>;
+				vactive = <480>;
+				hfront-porch = <40>;
+				hback-porch = <40>;
+				hsync-len = <48>;
+				vback-porch = <30>;
+				vfront-porch = <13>;
+				vsync-len = <3>;
+				hsync-active = <0>;
+				vsync-active = <0>;
+				de-active = <1>;
+				pixelclk-active = <0>;
+			};
+		};
+    };
+    
+	fb {
+		compatible = "ti,am33xx-tilcdc";
+		reg = <0x4830e000 0x1000>;
+		interrupt-parent = <&intc>;
+		interrupts = <36>;
+		ti,hwmods = "lcdc";
+    };
+};
+
+&rtc {
+	system-power-controller;
 };
 
 &mac {
